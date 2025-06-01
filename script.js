@@ -415,3 +415,51 @@ document.getElementById("bucket-fill").addEventListener("click", function () {
     canvas.removeEventListener("click", fillArea); // Remove the event listener after filling
   });
 });
+
+// Function to save the drawing as a JSON file
+function saveDrawingAsJSON() {
+  const drawingData = {
+    strokes: strokes,
+    colorHistory: colorHistory,
+    size: size,
+    recording: recording,
+  };
+
+  const jsonData = JSON.stringify(drawingData, null, 2);
+
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(
+    new Blob([jsonData], { type: "application/json" })
+  );
+  a.download = "drawing.json";
+  a.click();
+}
+
+// Function to load a drawing from a JSON file
+function loadDrawingFromJSON(file) {
+  const fileReader = new FileReader();
+  fileReader.onload = function (event) {
+    const jsonData = JSON.parse(event.target.result);
+    strokes = jsonData.strokes;
+    colorHistory = jsonData.colorHistory;
+    size = jsonData.size;
+    recording = jsonData.recording;
+    updateUndoRedoButtons();
+    updateBrushPreview();
+    redrawCanvas();
+  };
+  fileReader.readAsText(file);
+}
+
+// Add event listener for saving drawing as JSON
+document
+  .getElementById("save-json")
+  .addEventListener("click", saveDrawingAsJSON);
+
+// Add event listener for loading drawing from JSON
+document
+  .getElementById("load-json")
+  .addEventListener("change", function (event) {
+    const file = event.target.files[0];
+    loadDrawingFromJSON(file);
+  });

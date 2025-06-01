@@ -24,7 +24,7 @@
     <canvas id="canvas"></canvas>
     <div>
       <button id="record" title="Record"><i class="fas fa-circle"></i></button>
-      <button id="reproduce" disabled title="Reproduce">
+      <button id="reproduce" title="Reproduce">
         <i class="fas fa-play"></i>
       </button>
       <button id="undo" title="Undo"><i class="fas fa-undo"></i></button>
@@ -83,6 +83,13 @@
           style="background-color: #00ffff"
           data-color="#00FFFF"
         ></div>
+      </div>
+
+      <div id="json-load-download">
+        <button id="save-json" title="Save Drawing as JSON">
+          <i class="fas fa-save"></i> Save as JSON
+        </button>
+        <input type="file" id="load-json" accept=".json" />
       </div>
     </div>
 
