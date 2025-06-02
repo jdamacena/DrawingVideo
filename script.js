@@ -113,6 +113,7 @@ function stopDrawing() {
 // Function to toggle recording
 function toggleRecord() {
   recording = !recording;
+
   if (recording) {
     document.getElementById("record").innerText = "Stop";
     strokes = [];
@@ -124,6 +125,7 @@ function toggleRecord() {
   }
   updateUndoRedoButtons();
 }
+
 // Function to reproduce the drawing
 function reproduceDrawing() {
   if (recording) return; // Ensure reproduction only works when not recording
@@ -345,75 +347,10 @@ document.getElementById("clear").addEventListener("click", clearCanvas);
 // Initial state of undo and redo buttons
 updateUndoRedoButtons();
 updateBrushPreview(); // Initialize brush preview on load
+
 // Function to toggle dark mode
 document.getElementById("toggle-mode").addEventListener("click", function () {
   document.body.classList.toggle("dark-mode"); // Toggle the dark-mode class
-});
-
-// Function to fill an area with the selected color
-function bucketFill(x, y) {
-  const targetColor = ctx.getImageData(x, y, 1, 1).data;
-  const fillColor = hexToRgb(color);
-
-  if (colorsMatch(targetColor, fillColor)) return;
-
-  const canvasData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-  const data = canvasData.data;
-  const queue = [];
-
-  queue.push([x, y]);
-
-  while (queue.length > 0) {
-    const [px, py] = queue.shift();
-    const index = (py * canvas.width + px) * 4;
-
-    if (
-      px >= 0 &&
-      px < canvas.width &&
-      py >= 0 &&
-      py < canvas.height &&
-      colorsMatch(data.slice(index, index + 4), targetColor)
-    ) {
-      data[index] = fillColor.r;
-      data[index + 1] = fillColor.g;
-      data[index + 2] = fillColor.b;
-      data[index + 3] = 255;
-
-      queue.push([px + 1, py]);
-      queue.push([px - 1, py]);
-      queue.push([px, py + 1]);
-      queue.push([px, py - 1]);
-    }
-  }
-
-  ctx.putImageData(canvasData, 0, 0);
-}
-
-// Helper function to check if two colors match
-function colorsMatch(color1, color2) {
-  return (
-    color1[0] === color2.r && color1[1] === color2.g && color1[2] === color2.b
-  );
-}
-
-// Helper function to convert hex color to RGB
-function hexToRgb(hex) {
-  const bigint = parseInt(hex.slice(1), 16);
-  return {
-    r: (bigint >> 16) & 255,
-    g: (bigint >> 8) & 255,
-    b: bigint & 255,
-  };
-}
-
-// Add event listener for bucket fill
-document.getElementById("bucket-fill").addEventListener("click", function () {
-  canvas.addEventListener("click", function fillArea(e) {
-    const x = e.offsetX;
-    const y = e.offsetY;
-    bucketFill(x, y); // Call the bucket fill function
-    canvas.removeEventListener("click", fillArea); // Remove the event listener after filling
-  });
 });
 
 // Function to save the drawing as a JSON file
