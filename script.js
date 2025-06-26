@@ -44,7 +44,7 @@ function setPlayButtonVisible(visible) {
 function newDrawing() {
   recording = false;
   strokes = [];
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  fillCanvasBackground();
   document.getElementById("reproduce").disabled = true;
   setPlayButtonVisible(false);
   lastX = undefined;
@@ -146,7 +146,7 @@ function reproduceDrawing() {
   if (recording || strokes.length === 0) return; // Only play if not recording and there is something to play
   var interval = 10; // Adjust the speed of reproduction
   var index = 0;
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  fillCanvasBackground();
   lastX = undefined;
   lastY = undefined;
 
@@ -272,7 +272,7 @@ function redo() {
 
 // Function to redraw the canvas based on the current strokes
 function redrawCanvas() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  fillCanvasBackground();
   strokes.forEach((stroke) => {
     if (stroke.type === "draw") {
       const distance = Math.sqrt(
@@ -339,7 +339,7 @@ function saveDrawing() {
 
 // Function to clear the canvas
 function clearCanvas() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  fillCanvasBackground();
   strokes = [];
   undoStack = [];
   redoStack = [];
@@ -532,3 +532,12 @@ window.addEventListener("click", (event) => {
 
 // Ensure play button is hidden initially
 setPlayButtonVisible(false);
+
+// Function to fill the canvas background
+function fillCanvasBackground() {
+  ctx.fillStyle = "#FFFFFF";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+}
+
+// Set the initial background
+fillCanvasBackground();
