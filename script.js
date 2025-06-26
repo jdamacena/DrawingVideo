@@ -40,15 +40,24 @@ function setPlayButtonVisible(visible) {
     : "none";
 }
 
+// Function to start a new drawing
+function newDrawing() {
+  recording = false;
+  strokes = [];
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  document.getElementById("reproduce").disabled = true;
+  setPlayButtonVisible(false);
+  lastX = undefined;
+  lastY = undefined;
+  updateUndoRedoButtons();
+}
+
 // Function to start drawing
 function startDrawing(e) {
   // Auto-start recording if not already
   if (!recording) {
     recording = true;
-    document.getElementById("record").innerText = "Stop";
     setPlayButtonVisible(false);
-    strokes = [];
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
     document.getElementById("reproduce").disabled = true;
   }
   let x =
@@ -125,38 +134,21 @@ function stopDrawing() {
       timestamp: new Date().getTime(),
     });
     updateUndoRedoButtons();
-  }
-}
-
-// Function to toggle recording (manual button)
-function toggleRecord() {
-  if (!recording) {
-    // Start recording manually
-    recording = true;
-    document.getElementById("record").innerText = "Stop";
-    setPlayButtonVisible(false);
-    strokes = [];
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    document.getElementById("reproduce").disabled = true;
-    // Reset drawing state to prevent phantom drawing
-    lastX = undefined;
-    lastY = undefined;
-  } else {
-    // Stop recording manually
+    // Stop recording after each stroke
     recording = false;
-    document.getElementById("record").innerText = "Record";
-    setPlayButtonVisible(true);
-    document.getElementById("reproduce").disabled = false;
+    setPlayButtonVisible(strokes.length > 0);
+    document.getElementById("reproduce").disabled = strokes.length === 0;
   }
-  updateUndoRedoButtons();
 }
 
 // Function to reproduce the drawing
 function reproduceDrawing() {
-  if (recording) return; // Ensure reproduction only works when not recording
+  if (recording || strokes.length === 0) return; // Only play if not recording and there is something to play
   var interval = 10; // Adjust the speed of reproduction
   var index = 0;
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+  lastX = undefined;
+  lastY = undefined;
 
   function animate() {
     if (index >= strokes.length) return;
@@ -173,17 +165,15 @@ function reproduceDrawing() {
         const distance = Math.sqrt(
           (stroke.newX - stroke.x) ** 2 + (stroke.newY - stroke.y) ** 2
         );
-        const steps = Math.ceil(distance / (stroke.size / 2)); // Number of circles to draw based on distance
-
+        const steps = Math.ceil(distance / (stroke.size / 2));
         for (let i = 0; i <= steps; i++) {
           const ratio = i / steps;
           const drawX = stroke.x + (stroke.newX - stroke.x) * ratio;
           const drawY = stroke.y + (stroke.newY - stroke.y) * ratio;
-
           ctx.beginPath();
-          ctx.arc(drawX, drawY, stroke.size / 2, 0, Math.PI * 2); // Draw a circle
-          ctx.fillStyle = stroke.color; // Set the fill color
-          ctx.fill(); // Fill the circle
+          ctx.arc(drawX, drawY, stroke.size / 2, 0, Math.PI * 2);
+          ctx.fillStyle = stroke.color;
+          ctx.fill();
           ctx.closePath();
         }
         lastX = stroke.newX;
@@ -357,7 +347,7 @@ function clearCanvas() {
 }
 
 // Add event listeners for buttons
-document.getElementById("record").addEventListener("click", toggleRecord);
+document.getElementById("new-drawing").addEventListener("click", newDrawing);
 document
   .getElementById("reproduce")
   .addEventListener("click", reproduceDrawing);
