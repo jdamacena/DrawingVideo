@@ -19,10 +19,34 @@ let redoStack = [];
 let color = document.getElementById("color").value; // Set initial color from input
 let size = 5;
 
-function updateColor(picker) {
-  color = picker.toHEXString();
+const colorPicker = new ColorPicker("#color", {
+  swatches: [
+    "#FF6F61",
+    "#FF8C42",
+    "#F6EB61",
+    "#A8D600",
+    "#00BFFF",
+    "#008C8C",
+    "#D5006D",
+  ],
+  enableAlpha: false,
+  enableEyedropper: true,
+  formats: [],
+  defaultFormat: "hex",
+  submitMode: "instant",
+  showClearButton: false,
+  dismissOnOutsideClick: true,
+});
+
+colorPicker.on("pick", (newColor) => {
+  if (!newColor) {
+    color = "#000000";
+  }
+
+  color = newColor.toString();
+  console.log(color);
   updateBrushPreview();
-}
+});
 
 // Add event listeners for drawing
 canvas.addEventListener("mousedown", startDrawing);
