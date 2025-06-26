@@ -387,7 +387,6 @@ document
 function saveDrawingAsJSON() {
   const drawingData = {
     strokes: strokes,
-    colorHistory: colorHistory,
     size: size,
     recording: recording,
   };
@@ -408,12 +407,13 @@ function loadDrawingFromJSON(file) {
   fileReader.onload = function (event) {
     const jsonData = JSON.parse(event.target.result);
     strokes = jsonData.strokes;
-    colorHistory = jsonData.colorHistory;
     size = jsonData.size;
     recording = jsonData.recording;
     updateUndoRedoButtons();
     updateBrushPreview();
     redrawCanvas();
+    setPlayButtonVisible(strokes && strokes.length > 0); // Show play button if strokes exist
+    document.getElementById("reproduce").disabled = !(strokes && strokes.length > 0);
   };
   fileReader.readAsText(file);
 }
