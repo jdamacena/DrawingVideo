@@ -45,14 +45,74 @@ header h1 {
   color: #007bff; /* Change color on hover */
 }
 
+/* Toolbar Styles */
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: var(--toolbar-bg, #f7f9fc);
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  padding: 12px 20px;
+  margin: 24px auto 18px auto;
+  max-width: 900px;
+  flex-wrap: wrap;
+}
+
+body.dark-mode .toolbar {
+  background: #23272e;
+}
+
+.toolbar-divider {
+  width: 2px;
+  height: 32px;
+  background: #e0e0e0;
+  margin: 0 10px;
+  border-radius: 2px;
+}
+
+body.dark-mode .toolbar-divider {
+  background: #444b5a;
+}
+
+.toolbar-preview {
+  display: flex;
+  align-items: center;
+  margin: 0 8px;
+}
+
 /* Canvas Styles */
 canvas {
-  border: 1px solid #ccc; /* Soft border */
-  margin-bottom: 20px;
-  width: 100%; /* Responsive width */
-  max-width: 800px; /* Limit maximum width */
-  height: auto; /* Maintain aspect ratio */
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+  display: block;
+  margin: 0 auto 18px auto;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* Panel Styles */
+.panel-row {
+  display: flex;
+  gap: 24px;
+  justify-content: center;
+  margin: 24px auto 0 auto;
+  max-width: 900px;
+  flex-wrap: wrap;
+}
+
+.panel {
+  background: var(--panel-bg, #fff);
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  padding: 18px 20px 12px 20px;
+  min-width: 220px;
+  flex: 1 1 220px;
+  margin-bottom: 16px;
+}
+
+body.dark-mode .panel {
+  background: #23272e;
 }
 
 /* Button Styles */

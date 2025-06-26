@@ -14,7 +14,7 @@
   <header>
     <h1>Whiteboard Recorder</h1>
     <div>
-      <a href="https://github.com/jdamacena/DrawingVideo" class="github-link" target="_blank" title="View on GitHub">
+      <a href="https://github.com/jdamacena/DrawingVideo" target="_blank" title="View on GitHub">
         <i class="fab fa-github"></i> GitHub
       </a>
       <button id="toggle-mode" title="Toggle Dark Mode">
@@ -25,53 +25,47 @@
       </button>
     </div>
   </header>
-  <canvas id="canvas"></canvas>
-  <div>
-    <button id="new-drawing" title="Start New Drawing"><i class="fas fa-file"></i> New Drawing</button>
-    <button id="reproduce" title="Reproduce" style="display:none;">
-      <i class="fas fa-play"></i>
-    </button>
+
+  <div class="toolbar">
+    <button id="new-drawing" title="Start New Drawing"><i class="fas fa-file"></i></button>
+    <button id="reproduce" title="Reproduce" style="display:none;"><i class="fas fa-play"></i></button>
     <button id="undo" title="Undo"><i class="fas fa-undo"></i></button>
     <button id="redo" title="Redo"><i class="fas fa-redo"></i></button>
     <button id="eraser" title="Eraser"><i class="fas fa-eraser"></i></button>
-    <button id="clear" title="Clear Canvas">
-      <i class="fas fa-trash"></i>
-    </button>
-    <input type="color" id="color" value="#FF0000" />
-    <div id="brush-preview-container">
+    <button id="clear" title="Clear Canvas"><i class="fas fa-trash"></i></button>
+    <div class="toolbar-divider"></div>
+    <input type="color" id="color" value="#FF0000" title="Brush Color" />
+    <div id="brush-preview-container" class="toolbar-preview">
       <div id="brush-preview"></div>
     </div>
-    <input type="range" id="size" min="1" max="40" value="5" />
+    <input type="range" id="size" min="1" max="40" value="5" title="Brush Size" />
     <span id="size-label">Size: 5</span>
   </div>
-  <div id="color-history">
-    <h3>Color History</h3>
-    <div id="history"></div>
-  </div>
-  <div id="common-colors">
-    <h3>Common Colors</h3>
-    <div>
-      <div class="color-swatch" style="background-color: #ff0000" data-color="#FF0000"></div>
-      <div class="color-swatch" style="background-color: #00ff00" data-color="#00FF00"></div>
-      <div class="color-swatch" style="background-color: #0000ff" data-color="#0000FF"></div>
-      <div class="color-swatch" style="background-color: #ffff00" data-color="#FFFF00"></div>
-      <div class="color-swatch" style="background-color: #ff00ff" data-color="#FF00FF"></div>
-      <div class="color-swatch" style="background-color: #00ffff" data-color="#00FFFF"></div>
+
+  <canvas id="canvas"></canvas>
+
+  <div class="panel-row">
+    <div id="color-history" class="panel">
+      <h3>Color History</h3>
+      <div id="history"></div>
     </div>
-
-    <div id="upload-download">
-      <button id="save" title="Save as Image">
-        <i class="fas fa-save"></i>
-      </button>
-
-      <button id="save-json" title="Save Drawing as JSON">
-        <i class="fas fa-save"></i> Save as JSON
-      </button>
-      <input type="file" id="load-json" accept=".json" />
-
-      <button id="download-video" title="Download Drawing as Video">
-        <i class="fas fa-video"></i> Download as Video
-      </button>
+    <div id="common-colors" class="panel">
+      <h3>Common Colors</h3>
+      <div>
+        <div class="color-swatch" style="background-color: #ff0000" data-color="#FF0000"></div>
+        <div class="color-swatch" style="background-color: #00ff00" data-color="#00FF00"></div>
+        <div class="color-swatch" style="background-color: #0000ff" data-color="#0000FF"></div>
+        <div class="color-swatch" style="background-color: #ffff00" data-color="#FFFF00"></div>
+        <div class="color-swatch" style="background-color: #ff00ff" data-color="#FF00FF"></div>
+        <div class="color-swatch" style="background-color: #00ffff" data-color="#00FFFF"></div>
+      </div>
+      <div id="upload-download">
+        <button id="save" title="Save as Image"><i class="fas fa-save"></i></button>
+        <button id="save-json" title="Save Drawing as JSON"><i class="fas fa-save"></i> Save as JSON</button>
+        <input type="file" id="load-json" accept=".json" />
+        <button id="download-video" title="Download Drawing as Video"><i class="fas fa-video"></i> Download as
+          Video</button>
+      </div>
     </div>
   </div>
 
