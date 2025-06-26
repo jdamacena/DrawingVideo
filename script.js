@@ -138,6 +138,9 @@ function toggleRecord() {
     strokes = [];
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     document.getElementById("reproduce").disabled = true;
+    // Reset drawing state to prevent phantom drawing
+    lastX = undefined;
+    lastY = undefined;
   } else {
     // Stop recording manually
     recording = false;
