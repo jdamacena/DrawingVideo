@@ -363,10 +363,44 @@ document.getElementById("clear").addEventListener("click", clearCanvas);
 updateUndoRedoButtons();
 updateBrushPreview(); // Initialize brush preview on load
 
+// Function to get theme from URL
+function getThemeFromURL() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get("theme");
+}
+
+// Function to set theme in URL
+function setThemeInURL(theme) {
+  const params = new URLSearchParams(window.location.search);
+  params.set("theme", theme);
+  const newUrl = window.location.pathname + "?" + params.toString();
+  window.history.replaceState({}, "", newUrl);
+}
+
+// Function to apply theme
+function applyTheme(theme) {
+  if (theme === "dark") {
+    document.body.classList.add("dark-mode");
+  } else {
+    document.body.classList.remove("dark-mode");
+  }
+}
+
+// On load, apply theme from URL if present
+const urlTheme = getThemeFromURL();
+if (urlTheme) {
+  applyTheme(urlTheme);
+}
+
 // Function to toggle dark mode
-document.getElementById("toggle-mode").addEventListener("click", function () {
-  document.body.classList.toggle("dark-mode"); // Toggle the dark-mode class
-});
+function toggleDarkMode() {
+  const isDark = document.body.classList.toggle("dark-mode");
+  setThemeInURL(isDark ? "dark" : "light");
+}
+
+document
+  .getElementById("toggle-mode")
+  .addEventListener("click", toggleDarkMode);
 
 // Function to save the drawing as a JSON file
 function saveDrawingAsJSON() {
