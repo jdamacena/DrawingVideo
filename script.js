@@ -495,3 +495,22 @@ function downloadVideo() {
 document
   .getElementById("download-video")
   .addEventListener("click", downloadVideo);
+
+// User Guide Modal Logic
+const helpBtn = document.getElementById("help-btn");
+const userGuideModal = document.getElementById("user-guide-modal");
+const closeGuide = document.getElementById("close-guide");
+
+helpBtn.addEventListener("click", () => {
+  userGuideModal.style.display = "block";
+});
+
+closeGuide.addEventListener("click", () => {
+  userGuideModal.style.display = "none";
+});
+
+window.addEventListener("click", (event) => {
+  if (event.target === userGuideModal) {
+    userGuideModal.style.display = "none";
+  }
+});

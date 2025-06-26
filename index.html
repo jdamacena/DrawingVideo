@@ -20,6 +20,9 @@
       <button id="toggle-mode" title="Toggle Dark Mode">
         <i class="fas fa-adjust"></i>
       </button>
+      <button id="help-btn" title="User Guide">
+        <i class="fas fa-question-circle"></i>
+      </button>
     </div>
   </header>
   <canvas id="canvas"></canvas>
@@ -69,6 +72,28 @@
       <button id="download-video" title="Download Drawing as Video">
         <i class="fas fa-video"></i> Download as Video
       </button>
+    </div>
+  </div>
+
+  <div id="user-guide-modal" class="modal">
+    <div class="modal-content">
+      <span class="close" id="close-guide">&times;</span>
+      <h2>User Guide</h2>
+      <ul>
+        <li><b>Draw:</b> Click and drag on the canvas to draw.</li>
+        <li><b>Record:</b> Click the <i class="fas fa-circle"></i> button to start/stop recording your drawing.</li>
+        <li><b>Reproduce:</b> Click the <i class="fas fa-play"></i> button to replay your drawing.</li>
+        <li><b>Undo/Redo:</b> Use <i class="fas fa-undo"></i> and <i class="fas fa-redo"></i> to undo/redo strokes.</li>
+        <li><b>Eraser:</b> Click <i class="fas fa-eraser"></i> to erase parts of your drawing.</li>
+        <li><b>Clear:</b> Click <i class="fas fa-trash"></i> to clear the canvas.</li>
+        <li><b>Color Picker:</b> Select a color or use color history/common colors.</li>
+        <li><b>Brush Size:</b> Adjust the brush size with the slider.</li>
+        <li><b>Save:</b> Save your drawing as an image or JSON file.</li>
+        <li><b>Load:</b> Load a drawing from a JSON file.</li>
+        <li><b>Dark Mode:</b> Toggle dark mode with the <i class="fas fa-adjust"></i> button.</li>
+      </ul>
+      <p>For more info, visit the <a href="https://github.com/jdamacena/DrawingVideo" target="_blank">GitHub page</a>.
+      </p>
     </div>
   </div>
 
