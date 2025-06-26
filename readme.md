@@ -1,6 +1,8 @@
 # **Whiteboard Recorder**
 
-A web-based whiteboard recorder that allows users to record, reproduce, and share their drawings.
+A web-based whiteboard recorder that allows users to record the drawing process then reproduce, and share the drawings.
+
+[Project Demo](https://jdamacena.github.io/DrawingVideo/)
 
 ## **Features**
 
@@ -18,10 +20,11 @@ A web-based whiteboard recorder that allows users to record, reproduce, and shar
 
 1. Click the "Record" button to start recording your drawing.
 2. Use the drawing tools to create your artwork.
-3. Click the "Reproduce" button to replay your drawing.
-4. Use the undo and redo buttons to edit your drawing.
-5. Click the "Save as Image" button to save your drawing as a PNG file.
-6. Click the "Save as JSON" button to save your drawing as a JSON file.
-7. Click the "Download as Video" button to download your drawing as a video file.
+3. Click "Stop" to stop recording.
+4. Click the "Reproduce" button to replay your drawing process.
+5. Share your project:
+    - Click the "Save as Image" button to save your drawing as a PNG file.
+    - Click the "Save as JSON" button to save your drawing as a JSON file. Then upload your JSON to play.
+    - Click the "Download as Video" button to download your drawing as a video file.
 
-Note: This was a one weekend project and it may have some bugs!!
+Note: This is a work in progress and it may have some bugs!!
