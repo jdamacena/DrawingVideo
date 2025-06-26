@@ -168,6 +168,36 @@ body.dark-mode .modal-content {
   cursor: pointer;
 }
 
+body.dark-mode .github-link:visited {
+  color: #66b3ff;
+}
+
+/* Help modal link style for dark mode */
+.help-link {
+  color: #007bff;
+  transition: color 0.2s;
+}
+
+.help-link:visited {
+  color: #66b3ff;
+}
+
+body.dark-mode .help-link {
+  color: #7ecbff;
+}
+
+body.dark-mode .help-link:visited {
+  color: #b3e0ff;
+}
+
+.help-link:hover {
+  color: #0056b3;
+}
+
+body.dark-mode .help-link:hover {
+  color: #cce6ff;
+}
+
 /* Responsive Design */
 @media (max-width: 600px) {
   button {
