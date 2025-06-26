@@ -34,7 +34,7 @@
     <button id="eraser" title="Eraser"><i class="fas fa-eraser"></i></button>
     <button id="clear" title="Clear Canvas"><i class="fas fa-trash"></i></button>
     <div class="toolbar-divider"></div>
-    <input type="color" id="color" value="#FF0000" title="Brush Color" />
+    <input id="color" data-jscolor="{format:'hex', onInput:'updateColor(this)'}" value="#000000" title="Brush Color">
     <div id="brush-preview-container" class="toolbar-preview">
       <div id="brush-preview"></div>
     </div>
@@ -45,20 +45,7 @@
   <canvas id="canvas"></canvas>
 
   <div class="panel-row">
-    <div id="color-history" class="panel">
-      <h3>Color History</h3>
-      <div id="history"></div>
-    </div>
-    <div id="common-colors" class="panel">
-      <h3>Common Colors</h3>
-      <div>
-        <div class="color-swatch" style="background-color: #ff0000" data-color="#FF0000"></div>
-        <div class="color-swatch" style="background-color: #00ff00" data-color="#00FF00"></div>
-        <div class="color-swatch" style="background-color: #0000ff" data-color="#0000FF"></div>
-        <div class="color-swatch" style="background-color: #ffff00" data-color="#FFFF00"></div>
-        <div class="color-swatch" style="background-color: #ff00ff" data-color="#FF00FF"></div>
-        <div class="color-swatch" style="background-color: #00ffff" data-color="#00FFFF"></div>
-      </div>
+    <div class="panel" id="upload-download-panel">
       <div id="upload-download">
         <button id="save" title="Save as Image"><i class="fas fa-save"></i></button>
         <button id="save-json" title="Save Drawing as JSON"><i class="fas fa-save"></i> Save as JSON</button>
@@ -89,6 +76,7 @@
     </div>
   </div>
 
+  <script src="https://jscolor.com/releases/2.5.3/jscolor.js"></script>
   <script src="script.js"></script>
 </body>
 

@@ -19,8 +19,10 @@ let redoStack = [];
 let color = document.getElementById("color").value; // Set initial color from input
 let size = 5;
 
-// Initialize color history
-let colorHistory = [];
+function updateColor(picker) {
+  color = picker.toHEXString();
+  updateBrushPreview();
+}
 
 // Add event listeners for drawing
 canvas.addEventListener("mousedown", startDrawing);
@@ -190,51 +192,6 @@ function reproduceDrawing() {
   animate();
 }
 
-// Function to change color
-function changeColor() {
-  color = document.getElementById("color").value; // Update the color variable
-  addToColorHistory(color);
-  updateColorHistoryDisplay();
-  updateBrushPreview(); // Update brush preview
-}
-
-// Function to add color to history
-function addToColorHistory(newColor) {
-  // Remove the color if it already exists
-  colorHistory = colorHistory.filter((c) => c !== newColor);
-  // Add the new color to the front of the array
-  colorHistory.unshift(newColor);
-  // Keep only the last 3 colors
-  if (colorHistory.length > 3) {
-    colorHistory.pop();
-  }
-}
-
-// Function to update the color history display
-function updateColorHistoryDisplay() {
-  let historyDiv = document.getElementById("history");
-  historyDiv.innerHTML = ""; // Clear existing history
-  colorHistory.forEach((color) => {
-    let swatch = document.createElement("div");
-    swatch.className = "color-swatch";
-    swatch.style.backgroundColor = color;
-    swatch.dataset.color = color;
-    swatch.addEventListener("click", () => {
-      document.getElementById("color").value = color; // Update color picker
-      changeColor(); // Update the drawing color
-    });
-    historyDiv.appendChild(swatch);
-  });
-}
-
-// Add event listeners for common colors
-document.querySelectorAll(".color-swatch").forEach((swatch) => {
-  swatch.addEventListener("click", function () {
-    document.getElementById("color").value = this.dataset.color; // Update color picker
-    changeColor(); // Update the drawing color
-  });
-});
-
 // Function to change size
 function changeSize() {
   size = document.getElementById("size").value;
@@ -297,13 +254,14 @@ function redrawCanvas() {
 
 // Function to toggle the eraser
 function toggleEraser() {
+  const colorInput = document.getElementById("color");
   if (color === "#FFFFFF") {
     // Assuming white is the background color
-    color = document.getElementById("color").value; // Switch back to the selected color
+    color = colorInput.value; // Switch back to the selected color
   } else {
     color = "#FFFFFF"; // Set color to white for erasing
   }
-  document.getElementById("color").value = color; // Update color picker
+  colorInput.jscolor.fromString(color); // Update jscolor instance
   updateBrushPreview(); // Update brush preview
 }
 
@@ -351,7 +309,6 @@ document.getElementById("new-drawing").addEventListener("click", newDrawing);
 document
   .getElementById("reproduce")
   .addEventListener("click", reproduceDrawing);
-document.getElementById("color").addEventListener("input", changeColor);
 document.getElementById("size").addEventListener("input", changeSize);
 document.getElementById("undo").addEventListener("click", undo);
 document.getElementById("redo").addEventListener("click", redo);
