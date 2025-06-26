@@ -33,28 +33,45 @@ canvas.addEventListener("touchmove", function (e) {
   draw(e.touches[0]);
 });
 
+// Helper to show/hide play button
+function setPlayButtonVisible(visible) {
+  document.getElementById("reproduce").style.display = visible
+    ? "inline-block"
+    : "none";
+}
+
 // Function to start drawing
 function startDrawing(e) {
-  if (recording) {
-    let x =
-      e.offsetX || e.touches[0].clientX - canvas.getBoundingClientRect().left;
-    let y =
-      e.offsetY || e.touches[0].clientY - canvas.getBoundingClientRect().top;
-    lastX = x;
-    lastY = y;
-    undoStack.push(strokes.slice()); // Save current strokes to undo stack
-    redoStack = []; // Clear redo stack
-    strokes.push({
-      type: "start",
-      x: x,
-      y: y,
-      color: color,
-      size: size,
-      timestamp: new Date().getTime(),
-    });
-    updateUndoRedoButtons();
+  // Auto-start recording if not already
+  if (!recording) {
+    recording = true;
+    document.getElementById("record").innerText = "Stop";
+    setPlayButtonVisible(false);
+    strokes = [];
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    document.getElementById("reproduce").disabled = true;
   }
+  let x =
+    e.offsetX ||
+    (e.touches && e.touches[0].clientX - canvas.getBoundingClientRect().left);
+  let y =
+    e.offsetY ||
+    (e.touches && e.touches[0].clientY - canvas.getBoundingClientRect().top);
+  lastX = x;
+  lastY = y;
+  undoStack.push(strokes.slice()); // Save current strokes to undo stack
+  redoStack = []; // Clear redo stack
+  strokes.push({
+    type: "start",
+    x: x,
+    y: y,
+    color: color,
+    size: size,
+    timestamp: new Date().getTime(),
+  });
+  updateUndoRedoButtons();
 }
+
 // Function to draw
 function draw(e) {
   if (!recording || lastX === undefined || lastY === undefined) return;
@@ -97,9 +114,10 @@ function draw(e) {
 
 // Function to stop drawing
 function stopDrawing() {
+  lastX = undefined;
+  lastY = undefined;
+  // Only add a stop stroke if recording
   if (recording) {
-    lastX = undefined;
-    lastY = undefined;
     strokes.push({
       type: "stop",
       color: color,
@@ -110,18 +128,22 @@ function stopDrawing() {
   }
 }
 
-// Function to toggle recording
+// Function to toggle recording (manual button)
 function toggleRecord() {
-  recording = !recording;
-
-  if (recording) {
+  if (!recording) {
+    // Start recording manually
+    recording = true;
     document.getElementById("record").innerText = "Stop";
+    setPlayButtonVisible(false);
     strokes = [];
-    ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear canvas on new recording
-    document.getElementById("reproduce").disabled = true; // Disable reproduce button while recording
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    document.getElementById("reproduce").disabled = true;
   } else {
+    // Stop recording manually
+    recording = false;
     document.getElementById("record").innerText = "Record";
-    document.getElementById("reproduce").disabled = false; // Enable reproduce button when not recording
+    setPlayButtonVisible(true);
+    document.getElementById("reproduce").disabled = false;
   }
   updateUndoRedoButtons();
 }
@@ -514,3 +536,6 @@ window.addEventListener("click", (event) => {
     userGuideModal.style.display = "none";
   }
 });
+
+// Ensure play button is hidden initially
+setPlayButtonVisible(false);
