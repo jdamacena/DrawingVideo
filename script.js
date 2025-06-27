@@ -221,76 +221,66 @@ function redo() {
 
 // Function to reproduce the drawing
 function reproduceDrawing() {
-  if (recording || strokes.length === 0) return;
-  let interval = 4; // ms per frame (for pause between strokes)
+  if (strokes.length === 0) return;
+  // Stop recording to allow playback
+  recording = false;
+  const interval = 4; // ms per frame pause between strokes
   let strokeIndex = 0;
-  let pointIndex = 2;
-  let isPlaying = true;
+  let pointIndex = 1; // start at second point for drawing segments
 
-  // Helper to draw all previous strokes fully
-  function drawPreviousStrokes() {
-    for (let i = 0; i < strokeIndex; i++) {
-      if (strokes[i].type === "stroke") {
-        drawTaperedStroke(strokes[i]);
-      }
+  // Clear and fill background once
+  fillCanvasBackground();
+
+  function drawNext() {
+    // If all strokes done, stop
+    if (strokeIndex >= strokes.length) return;
+    const stroke = strokes[strokeIndex];
+    // Skip if not a stroke or too few points
+    if (stroke.type !== "stroke" || stroke.points.length < 2) {
+      strokeIndex++;
+      pointIndex = 1;
+      setTimeout(drawNext, interval * 4);
+      return;
     }
-  }
-
-  function drawCurrentStrokeUpTo(stroke, ptIdx) {
-    if (!stroke || !stroke.points || stroke.points.length < 2) return;
+    // Draw segment from pointIndex-1 to pointIndex
+    const i = pointIndex - 1;
+    const p0 = stroke.points[i];
+    const p1 = stroke.points[pointIndex];
     ctx.save();
     ctx.strokeStyle = stroke.color;
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
     const isEraser =
       stroke.color === "#FFFFFF" || stroke.color.toLowerCase() === "white";
-    const taperFraction = 0.15;
-    for (let i = 0; i < Math.min(ptIdx - 1, stroke.points.length - 1); i++) {
-      const p0 = stroke.points[i];
-      const p1 = stroke.points[i + 1];
-      let w = stroke.size;
-      if (!isEraser) {
-        const t = i / (stroke.points.length - 1);
-        if (t < taperFraction) {
-          w = stroke.size * ((t / taperFraction) * 0.7 + 0.3);
-        } else if (t > 1 - taperFraction) {
-          w = stroke.size * (((1 - t) / taperFraction) * 0.7 + 0.3);
-        }
+    let w = stroke.size;
+    if (!isEraser) {
+      const t = i / (stroke.points.length - 1);
+      const taperFraction = 0.15;
+      if (t < taperFraction) {
+        w = stroke.size * ((t / taperFraction) * 0.7 + 0.3);
+      } else if (t > 1 - taperFraction) {
+        w = stroke.size * (((1 - t) / taperFraction) * 0.7 + 0.3);
       }
-      ctx.lineWidth = Math.max(w, 1);
-      ctx.beginPath();
-      ctx.moveTo(p0.x, p0.y);
-      ctx.lineTo(p1.x, p1.y);
-      ctx.stroke();
     }
+    ctx.lineWidth = Math.max(w, 1);
+    ctx.beginPath();
+    ctx.moveTo(p0.x, p0.y);
+    ctx.lineTo(p1.x, p1.y);
+    ctx.stroke();
     ctx.restore();
+    // Advance
+    pointIndex++;
+    if (pointIndex < stroke.points.length) {
+      requestAnimationFrame(drawNext);
+    } else {
+      // Move to next stroke
+      strokeIndex++;
+      pointIndex = 1;
+      setTimeout(drawNext, interval * 4);
+    }
   }
 
-  function animate() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = "#FFFFFF";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    drawPreviousStrokes();
-    if (strokeIndex < strokes.length) {
-      const stroke = strokes[strokeIndex];
-      if (stroke.type === "stroke") {
-        drawCurrentStrokeUpTo(stroke, pointIndex);
-        pointIndex++;
-        if (pointIndex <= stroke.points.length) {
-          requestAnimationFrame(animate);
-        } else {
-          strokeIndex++;
-          pointIndex = 2;
-          setTimeout(animate, interval * 4); // Small pause between strokes
-        }
-      } else {
-        strokeIndex++;
-        pointIndex = 2;
-        setTimeout(animate, interval);
-      }
-    }
-  }
-  animate();
+  drawNext();
 }
 
 // Function to toggle the eraser
@@ -430,7 +420,9 @@ function loadDrawingFromJSON(file) {
     updateBrushPreview();
     redrawCanvas();
     setPlayButtonVisible(strokes && strokes.length > 0); // Show play button if strokes exist
-    document.getElementById("reproduce").disabled = !(strokes && strokes.length > 0);
+    document.getElementById("reproduce").disabled = !(
+      strokes && strokes.length > 0
+    );
   };
   fileReader.readAsText(file);
 }
