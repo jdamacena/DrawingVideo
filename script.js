@@ -2,7 +2,7 @@
 const APP_METADATA = {
   version: "1.0.0",
   app: "Whiteboard Recorder",
-  background: "#FFFFFF"
+  background: "#FFFFFF",
 };
 // --------------------
 
@@ -84,6 +84,59 @@ function newDrawing() {
   lastX = undefined;
   lastY = undefined;
   updateUndoRedoButtons();
+  resetVideoRecording();
+}
+
+// --- Video Recording State ---
+let mediaRecorder = null;
+let recordedChunks = [];
+let allVideoChunks = [];
+let isRecordingVideo = false;
+
+function startVideoRecording() {
+  if (isRecordingVideo) return;
+  mediaRecorder = new MediaRecorder(canvas.captureStream(30));
+  recordedChunks = [];
+  mediaRecorder.addEventListener("dataavailable", (event) => {
+    if (event.data && event.data.size > 0) {
+      recordedChunks.push(event.data);
+      allVideoChunks.push(event.data);
+    }
+  });
+  mediaRecorder.start(200); // 200ms timeslice
+  isRecordingVideo = true;
+}
+
+function stopVideoRecording() {
+  if (mediaRecorder && isRecordingVideo) {
+    mediaRecorder.stop();
+    isRecordingVideo = false;
+  }
+}
+
+function resetVideoRecording() {
+  stopVideoRecording();
+  recordedChunks = [];
+  allVideoChunks = [];
+  mediaRecorder = null;
+  isRecordingVideo = false;
+}
+
+function downloadVideo() {
+  if (!isRecordingVideo || allVideoChunks.length === 0) return;
+  // Request the latest chunk
+  mediaRecorder.requestData();
+  setTimeout(() => {
+    const validChunks = allVideoChunks.filter(
+      (chunk) => chunk && chunk.size > 1000
+    );
+    if (validChunks.length === 0) return;
+    const blob = new Blob(validChunks, { type: "video/mp4" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "drawing.mp4";
+    link.click();
+  }, 200); // Wait for the chunk to be flushed
 }
 
 // Function to start drawing
@@ -94,6 +147,8 @@ function startDrawing(e) {
     setPlayButtonVisible(false);
     document.getElementById("reproduce").disabled = true;
   }
+  // Start video recording if not already
+  startVideoRecording();
   let x =
     e.offsetX || e.touches[0].clientX - canvas.getBoundingClientRect().left;
   let y =
@@ -341,6 +396,7 @@ function clearCanvas() {
   undoStack = [];
   redoStack = [];
   updateUndoRedoButtons();
+  resetVideoRecording();
 }
 
 // Add event listeners for buttons
@@ -354,6 +410,9 @@ document.getElementById("redo").addEventListener("click", redo);
 document.getElementById("eraser").addEventListener("click", toggleEraser);
 document.getElementById("save").addEventListener("click", saveDrawing);
 document.getElementById("clear").addEventListener("click", clearCanvas);
+document
+  .getElementById("download-video")
+  .addEventListener("click", downloadVideo);
 
 // Initial state of undo and redo buttons
 updateUndoRedoButtons();
@@ -406,7 +465,7 @@ function saveDrawingAsJSON() {
     exportedAt: new Date().toISOString(),
     canvas: {
       width: canvas.width,
-      height: canvas.height
+      height: canvas.height,
     },
     background: APP_METADATA.background,
     userAgent: navigator.userAgent,
@@ -456,101 +515,6 @@ document
     const file = event.target.files[0];
     loadDrawingFromJSON(file);
   });
-
-// Function to download the video
-function downloadVideo() {
-  // Create a temporary canvas to draw the white background
-  const tempCanvas = document.createElement("canvas");
-  const tempCtx = tempCanvas.getContext("2d");
-
-  // Set the dimensions of the temporary canvas
-  tempCanvas.width = canvas.width;
-  tempCanvas.height = canvas.height;
-
-  // Fill the temporary canvas with a white background
-  tempCtx.fillStyle = "#FFFFFF"; // White background
-  tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
-
-  // Create a new MediaRecorder instance
-  const mediaRecorder = new MediaRecorder(canvas.captureStream(30));
-
-  // Create an array to store the recorded video chunks
-  let recordedChunks = [];
-
-  // Add an event listener for dataavailable events
-  mediaRecorder.addEventListener("dataavailable", (event) => {
-    recordedChunks.push(event.data);
-  });
-
-  // Add an event listener for stop events
-  mediaRecorder.addEventListener("stop", () => {
-    // Create a blob from the recorded chunks
-    const blob = new Blob(recordedChunks, { type: "video/mp4" });
-
-    // Create a link to download the video
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = "drawing.mp4";
-    link.click();
-  });
-
-  // Function to capture the canvas and record it
-  let recording = true;
-  function captureAndRecord() {
-    if (recording) {
-      // Clear the temporary canvas
-      tempCtx.clearRect(0, 0, tempCanvas.width, tempCanvas.height);
-
-      // Draw the entire stroke stack onto the temporary canvas
-      tempCtx.fillStyle = "#FFFFFF"; // White background
-      tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
-      strokes.forEach((stroke, index) => {
-        if (stroke.type === "start") {
-          tempCtx.beginPath();
-          tempCtx.arc(stroke.x, stroke.y, 5, 0, Math.PI * 2);
-          tempCtx.fillStyle = stroke.color;
-          tempCtx.fill();
-        } else if (stroke.type === "draw") {
-          const x = stroke.newX;
-          const y = stroke.newY;
-          const lastX = stroke.x;
-          const lastY = stroke.y;
-          const distance = Math.sqrt((x - lastX) ** 2 + (y - lastY) ** 2);
-          const steps = Math.ceil(distance / (5 / 2)); // Number of circles to draw based on distance
-          for (let i = 0; i <= steps; i++) {
-            const ratio = i / steps;
-            const drawX = lastX + (x - lastX) * ratio;
-            const drawY = lastY + (y - lastY) * ratio;
-            tempCtx.beginPath();
-            tempCtx.arc(drawX, drawY, 5 / 2, 0, Math.PI * 2);
-            tempCtx.fillStyle = stroke.color;
-            tempCtx.fill();
-          }
-        }
-      });
-
-      // Request the next frame
-      requestAnimationFrame(captureAndRecord);
-    }
-  }
-
-  // Start capturing and recording
-  captureAndRecord();
-
-  // Add an event listener for the stop button
-  document.getElementById("download-video").addEventListener("click", () => {
-    // Stop recording
-    recording = false;
-    mediaRecorder.stop();
-  });
-
-  // Start recording
-  mediaRecorder.start();
-}
-
-document
-  .getElementById("download-video")
-  .addEventListener("click", downloadVideo);
 
 // User Guide Modal Logic
 const helpBtn = document.getElementById("help-btn");
