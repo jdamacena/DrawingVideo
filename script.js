@@ -1,3 +1,11 @@
+// --- App Metadata ---
+const APP_METADATA = {
+  version: "1.0.0",
+  app: "Whiteboard Recorder",
+  background: "#FFFFFF"
+};
+// --------------------
+
 // Get the canvas element
 let canvas = document.getElementById("canvas");
 let ctx = canvas.getContext("2d");
@@ -393,6 +401,15 @@ document
 // Function to save the drawing as a JSON file
 function saveDrawingAsJSON() {
   const drawingData = {
+    version: APP_METADATA.version,
+    app: APP_METADATA.app,
+    exportedAt: new Date().toISOString(),
+    canvas: {
+      width: canvas.width,
+      height: canvas.height
+    },
+    background: APP_METADATA.background,
+    userAgent: navigator.userAgent,
     strokes: strokes,
     size: size,
     recording: recording,
