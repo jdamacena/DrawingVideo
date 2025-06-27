@@ -80,26 +80,24 @@ function newDrawing() {
 
 // Function to start drawing
 function startDrawing(e) {
-  // Auto-start recording if not already
+  // Auto-start recording on first stroke
   if (!recording) {
     recording = true;
     setPlayButtonVisible(false);
     document.getElementById("reproduce").disabled = true;
   }
   let x =
-    e.offsetX ||
-    (e.touches && e.touches[0].clientX - canvas.getBoundingClientRect().left);
+    e.offsetX || e.touches[0].clientX - canvas.getBoundingClientRect().left;
   let y =
-    e.offsetY ||
-    (e.touches && e.touches[0].clientY - canvas.getBoundingClientRect().top);
+    e.offsetY || e.touches[0].clientY - canvas.getBoundingClientRect().top;
   lastX = x;
   lastY = y;
   undoStack.push(strokes.slice()); // Save current strokes to undo stack
   redoStack = []; // Clear redo stack
+  // Start a new stroke as an array of points
   strokes.push({
-    type: "start",
-    x: x,
-    y: y,
+    type: "stroke",
+    points: [{ x, y }],
     color: color,
     size: size,
     timestamp: new Date().getTime(),
@@ -110,38 +108,19 @@ function startDrawing(e) {
 // Function to draw
 function draw(e) {
   if (!recording || lastX === undefined || lastY === undefined) return;
-  var x =
+  const x =
     e.offsetX || e.touches[0].clientX - canvas.getBoundingClientRect().left;
-  var y =
+  const y =
     e.offsetY || e.touches[0].clientY - canvas.getBoundingClientRect().top;
 
-  // Draw multiple circles for smoother effect
-  const distance = Math.sqrt((x - lastX) ** 2 + (y - lastY) ** 2);
-  const steps = Math.ceil(distance / (size / 2)); // Number of circles to draw based on distance
-
-  for (let i = 0; i <= steps; i++) {
-    const ratio = i / steps;
-    const drawX = lastX + (x - lastX) * ratio;
-    const drawY = lastY + (y - lastY) * ratio;
-
-    ctx.beginPath();
-    ctx.arc(drawX, drawY, size / 2, 0, Math.PI * 2); // Draw a circle
-    ctx.fillStyle = color; // Set the fill color
-    ctx.fill(); // Fill the circle
-    ctx.closePath();
+  // Add the new point to the current stroke
+  const curr = strokes[strokes.length - 1];
+  if (curr && curr.type === "stroke") {
+    curr.points.push({ x, y });
+    // Redraw all strokes and current stroke
+    redrawCanvas();
+    drawTaperedStroke(curr);
   }
-
-  // Store the stroke data
-  strokes.push({
-    type: "draw",
-    x: lastX,
-    y: lastY,
-    newX: x,
-    newY: y,
-    color: color,
-    size: size,
-    timestamp: new Date().getTime(),
-  });
 
   lastX = x;
   lastY = y;
@@ -151,69 +130,58 @@ function draw(e) {
 function stopDrawing() {
   lastX = undefined;
   lastY = undefined;
-  // Only add a stop stroke if recording
-  if (recording) {
-    strokes.push({
-      type: "stop",
-      color: color,
-      size: size,
-      timestamp: new Date().getTime(),
-    });
-    updateUndoRedoButtons();
-    // Stop recording after each stroke
-    recording = false;
-    setPlayButtonVisible(strokes.length > 0);
-    document.getElementById("reproduce").disabled = strokes.length === 0;
-  }
+  // After finishing stroke, redraw to apply taper
+  redrawCanvas();
+  // Show play button now that at least one stroke exists
+  setPlayButtonVisible(strokes.length > 0);
+  document.getElementById("reproduce").disabled = strokes.length === 0;
+  updateUndoRedoButtons();
 }
 
-// Function to reproduce the drawing
-function reproduceDrawing() {
-  if (recording || strokes.length === 0) return; // Only play if not recording and there is something to play
-  var interval = 10; // Adjust the speed of reproduction
-  var index = 0;
-  fillCanvasBackground();
-  lastX = undefined;
-  lastY = undefined;
-
-  function animate() {
-    if (index >= strokes.length) return;
-    var stroke = strokes[index];
-
-    switch (stroke.type) {
-      case "start":
-        ctx.strokeStyle = stroke.color;
-        ctx.lineWidth = stroke.size;
-        lastX = stroke.x;
-        lastY = stroke.y;
-        break;
-      case "draw":
-        const distance = Math.sqrt(
-          (stroke.newX - stroke.x) ** 2 + (stroke.newY - stroke.y) ** 2
-        );
-        const steps = Math.ceil(distance / (stroke.size / 2));
-        for (let i = 0; i <= steps; i++) {
-          const ratio = i / steps;
-          const drawX = stroke.x + (stroke.newX - stroke.x) * ratio;
-          const drawY = stroke.y + (stroke.newY - stroke.y) * ratio;
-          ctx.beginPath();
-          ctx.arc(drawX, drawY, stroke.size / 2, 0, Math.PI * 2);
-          ctx.fillStyle = stroke.color;
-          ctx.fill();
-          ctx.closePath();
-        }
-        lastX = stroke.newX;
-        lastY = stroke.newY;
-        break;
-      case "stop":
-        lastX = undefined;
-        lastY = undefined;
-        break;
+// Draw a tapered stroke given a stroke object
+function drawTaperedStroke(stroke) {
+  if (!stroke || !stroke.points || stroke.points.length < 2) return;
+  const pts = stroke.points;
+  ctx.save();
+  ctx.strokeStyle = stroke.color;
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  // If eraser (white), do not taper
+  const isEraser =
+    stroke.color === "#FFFFFF" || stroke.color.toLowerCase() === "white";
+  const taperFraction = 0.15;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[i];
+    const p1 = pts[i + 1];
+    let w = stroke.size;
+    if (!isEraser) {
+      const t = i / (pts.length - 1);
+      if (t < taperFraction) {
+        w = stroke.size * ((t / taperFraction) * 0.7 + 0.3);
+      } else if (t > 1 - taperFraction) {
+        w = stroke.size * (((1 - t) / taperFraction) * 0.7 + 0.3);
+      }
     }
-    index++;
-    setTimeout(animate, interval);
+    ctx.lineWidth = Math.max(w, 1);
+    ctx.beginPath();
+    ctx.moveTo(p0.x, p0.y);
+    ctx.lineTo(p1.x, p1.y);
+    ctx.stroke();
   }
-  animate();
+  ctx.restore();
+}
+
+// Override redrawCanvas to use tapered strokes
+function redrawCanvas() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  // fill background white
+  ctx.fillStyle = "#FFFFFF";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  strokes.forEach((stroke) => {
+    if (stroke.type === "stroke") {
+      drawTaperedStroke(stroke);
+    }
+  });
 }
 
 // Function to change size
@@ -251,29 +219,78 @@ function redo() {
   }
 }
 
-// Function to redraw the canvas based on the current strokes
-function redrawCanvas() {
-  fillCanvasBackground();
-  strokes.forEach((stroke) => {
-    if (stroke.type === "draw") {
-      const distance = Math.sqrt(
-        (stroke.newX - stroke.x) ** 2 + (stroke.newY - stroke.y) ** 2
-      );
-      const steps = Math.ceil(distance / (stroke.size / 2)); // Number of circles to draw based on distance
+// Function to reproduce the drawing
+function reproduceDrawing() {
+  if (recording || strokes.length === 0) return;
+  let interval = 4; // ms per frame (for pause between strokes)
+  let strokeIndex = 0;
+  let pointIndex = 2;
+  let isPlaying = true;
 
-      for (let i = 0; i <= steps; i++) {
-        const ratio = i / steps;
-        const drawX = stroke.x + (stroke.newX - stroke.x) * ratio;
-        const drawY = stroke.y + (stroke.newY - stroke.y) * ratio;
-
-        ctx.beginPath();
-        ctx.arc(drawX, drawY, stroke.size / 2, 0, Math.PI * 2); // Draw a circle
-        ctx.fillStyle = stroke.color; // Set the fill color
-        ctx.fill(); // Fill the circle
-        ctx.closePath();
+  // Helper to draw all previous strokes fully
+  function drawPreviousStrokes() {
+    for (let i = 0; i < strokeIndex; i++) {
+      if (strokes[i].type === "stroke") {
+        drawTaperedStroke(strokes[i]);
       }
     }
-  });
+  }
+
+  function drawCurrentStrokeUpTo(stroke, ptIdx) {
+    if (!stroke || !stroke.points || stroke.points.length < 2) return;
+    ctx.save();
+    ctx.strokeStyle = stroke.color;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    const isEraser =
+      stroke.color === "#FFFFFF" || stroke.color.toLowerCase() === "white";
+    const taperFraction = 0.15;
+    for (let i = 0; i < Math.min(ptIdx - 1, stroke.points.length - 1); i++) {
+      const p0 = stroke.points[i];
+      const p1 = stroke.points[i + 1];
+      let w = stroke.size;
+      if (!isEraser) {
+        const t = i / (stroke.points.length - 1);
+        if (t < taperFraction) {
+          w = stroke.size * ((t / taperFraction) * 0.7 + 0.3);
+        } else if (t > 1 - taperFraction) {
+          w = stroke.size * (((1 - t) / taperFraction) * 0.7 + 0.3);
+        }
+      }
+      ctx.lineWidth = Math.max(w, 1);
+      ctx.beginPath();
+      ctx.moveTo(p0.x, p0.y);
+      ctx.lineTo(p1.x, p1.y);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "#FFFFFF";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    drawPreviousStrokes();
+    if (strokeIndex < strokes.length) {
+      const stroke = strokes[strokeIndex];
+      if (stroke.type === "stroke") {
+        drawCurrentStrokeUpTo(stroke, pointIndex);
+        pointIndex++;
+        if (pointIndex <= stroke.points.length) {
+          requestAnimationFrame(animate);
+        } else {
+          strokeIndex++;
+          pointIndex = 2;
+          setTimeout(animate, interval * 4); // Small pause between strokes
+        }
+      } else {
+        strokeIndex++;
+        pointIndex = 2;
+        setTimeout(animate, interval);
+      }
+    }
+  }
+  animate();
 }
 
 // Function to toggle the eraser
